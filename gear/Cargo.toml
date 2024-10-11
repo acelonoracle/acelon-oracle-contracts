@@ -1,0 +1,26 @@
+[workspace]
+members = ["client"]
+
+[package]
+name = "acelon-oracle"
+version = "0.1.0"
+authors = ["Papers AG <info@papers.ch>"]
+edition = "2021"
+
+[dependencies]
+acelon-oracle-app = { path = "app" }
+
+[build-dependencies]
+acelon-oracle-app = { path = "app" }
+sails-rs = { version = "0.6.1", features = ["wasm-builder"] }
+sails-idl-gen = "0.6.1"
+
+[dev-dependencies]
+acelon-oracle = { path = ".", features = ["wasm-binary"] }
+acelon-oracle-client = { path = "client" }
+sails-rs = { version = "0.6.1", features = ["gtest"] }
+tokio = { version = "1.40", features = ["rt", "macros"] }
+hex-literal = "0.4"
+
+[features]
+wasm-binary = []
