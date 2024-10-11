@@ -1,0 +1,17 @@
+[package]
+name = "acelon-oracle-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sails-rs = "0.6.1"
+gstd = "1"
+scale = { package = "parity-scale-codec", version = "3", default-features = false, features = [
+  "derive",
+] }
+scale-info = { version = "2", default-features = false, features = ["derive"] }
+blake2b_simd = { version = "1.0.2", default-features = false }
+k256 = { version = "0.13.4", default-features = false, features = [
+  "ecdsa",
+  "alloc",
+] }
