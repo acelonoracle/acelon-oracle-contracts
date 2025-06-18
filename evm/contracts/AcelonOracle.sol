@@ -6,7 +6,7 @@ import "./IAcelonOracle.sol";
 
 contract AcelonOracle is IAcelonOracle {
     bytes public constant ACURAST_SIGNATURE_PREFIX = "acusig";
-    bytes public constant ACURAST_SCRIPT_PREFIX = "ipfs://QmVHRimsTBSEASEcnbd5MYLKzphBu1MfZqajKqtWrC3Zbm";
+    bytes public constant ACURAST_SCRIPT_PREFIX = "ipfs://QmeFyCUgoYKseWW6YZUvjcKpLjbNL2dNAeMoX1Bn2xW97L";
 
     uint8 validSourcesThreshold;
     uint8 validSignersThreshold;
