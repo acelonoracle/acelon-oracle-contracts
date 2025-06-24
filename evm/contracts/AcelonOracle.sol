@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./AcelonStructs.sol";
 import "./IAcelonOracle.sol";
+import "./Owner.sol";
 
-contract AcelonOracle is IAcelonOracle {
+contract AcelonOracle is IAcelonOracle, AcelonOwner {
     bytes public constant ACURAST_SIGNATURE_PREFIX = "acusig";
     bytes public constant ACURAST_SCRIPT_PREFIX = "ipfs://QmVHRimsTBSEASEcnbd5MYLKzphBu1MfZqajKqtWrC3Zbm";
 
@@ -17,10 +18,7 @@ contract AcelonOracle is IAcelonOracle {
     
     mapping(bytes32 => AcelonStructs.PriceEntry) public priceFeeds;
 
-    mapping(address => bool) public owners;
-    mapping(address => bool) public proposedOwners;
-
-    constructor(address[] memory _owners, address[] memory _trustedSigners, bytes32[] memory _certificateTrustStore, uint8 _validSignersThreshold, uint8 _validSourcesThreshold, uint64 _validTimePeriod) {
+    constructor(address[] memory _owners, address[] memory _trustedSigners, bytes32[] memory _certificateTrustStore, uint8 _validSignersThreshold, uint8 _validSourcesThreshold, uint64 _validTimePeriod) AcelonOwner(_owners) {
         for(uint8 i = 0; i < _trustedSigners.length; i++) {
             trustedSigners[_trustedSigners[i]] = true;
         }
@@ -29,36 +27,9 @@ contract AcelonOracle is IAcelonOracle {
             certificateTrustStore[_certificateTrustStore[i]] = true;
         }
 
-        for(uint8 i = 0; i < _owners.length; i++) {
-            owners[_owners[i]] = true;
-        }
-
         validSignersThreshold = _validSignersThreshold;
         validSourcesThreshold = _validSourcesThreshold;
         validTimePeriod = _validTimePeriod;
-    }
-
-    modifier onlyOwner() {
-        require(owners[msg.sender], "NOT_OWNER");
-        _;
-    }
-
-    modifier onlyProposedOwner() {
-        require(proposedOwners[msg.sender], "NOT_PROPOSED_OWNER");
-        _;
-    }
-
-    function proposeOwner(address newOwner) public onlyOwner {
-        proposedOwners[newOwner] = true;
-    }
-
-    function acceptOwner() public onlyProposedOwner {
-        proposedOwners[msg.sender] = false;
-        owners[msg.sender] = true;
-    }
-
-    function removeOwner(address owner) public onlyOwner {
-        owners[owner] = false;
     }
 
     function updateSignersThreshold(uint8 newThreshold) public onlyOwner {
