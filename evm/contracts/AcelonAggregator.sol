@@ -79,7 +79,7 @@ contract AcelonAggregator is AggregatorV3Interface, AcelonOwner {
             uint256 localPrice = fetchedPrice * precisionFactor / source.precisionFactor;
 
             if (source.inverted) {
-                price = (price * precisionFactor * precisionFactor) / localPrice;
+                price = (price * precisionFactor) / localPrice;
             } else {
                 price = (price * localPrice) / precisionFactor;
             }
