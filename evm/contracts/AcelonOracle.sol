@@ -134,7 +134,7 @@ contract AcelonOracle is IAcelonOracle, AcelonOwner {
 
     function getPriceNoOlderThan(bytes32 requestHash, uint64 age) public view override returns (AcelonStructs.PriceEntry memory priceEntry){
         priceEntry = priceFeeds[requestHash];
-        require(diff(block.timestamp, priceEntry.timestamp) <= age);
+        require(diff(block.timestamp * 1000, priceEntry.timestamp) <= age);
         return priceEntry;
     }
 
