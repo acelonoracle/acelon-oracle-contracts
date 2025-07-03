@@ -7,6 +7,8 @@ interface IAcelonOracle {
     function updatePriceFeeds(bytes[] calldata updateData, bytes[][] calldata signature) external;
 
     function priceFeedExists(bytes32 requestHash) external view returns (bool);
+
+    function getScript() external view returns (bytes memory script);
     
     function getValidTimePeriod() external view returns (uint64 validTimePeriod);
 

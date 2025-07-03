@@ -52,8 +52,8 @@ impl AcelonOracleService {
             for signature in signatures_to_check {
                 if let Ok(signer_pk) = secp256k1_ecdsa_recover_compressed(signature, &message_hash)
                 {
-                    let singer_account_id: AccountId = blake2_256(&signer_pk).into();
-                    let is_trusted = Storage::trusted_signers().get(&singer_account_id).is_some();
+                    let signer_account_id: AccountId = blake2_256(&signer_pk).into();
+                    let is_trusted = Storage::trusted_signers().get(&signer_account_id).is_some();
                     if is_trusted {
                         valid_signers_counter = valid_signers_counter.saturating_add(1);
                         if valid_signers_counter >= Storage::config().valid_signers_threshold {

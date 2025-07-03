@@ -3,24 +3,30 @@ pragma solidity ^0.8.0;
 
 import "./AcelonStructs.sol";
 import "./IAcelonOracle.sol";
+import "./Owner.sol";
 
-contract AcelonOracle is IAcelonOracle {
+contract AcelonOracle is IAcelonOracle, AcelonOwner {
     bytes public constant ACURAST_SIGNATURE_PREFIX = "acusig";
-    bytes public constant ACURAST_SCRIPT_PREFIX = "ipfs://QmVHRimsTBSEASEcnbd5MYLKzphBu1MfZqajKqtWrC3Zbm";
 
     uint8 validSourcesThreshold;
     uint8 validSignersThreshold;
 
+    bytes script;
     uint64 validTimePeriod;
     mapping(address => bool) public trustedSigners;
     mapping(bytes32 => bool) public certificateTrustStore;
     
     mapping(bytes32 => AcelonStructs.PriceEntry) public priceFeeds;
 
-    mapping(address => bool) public owners;
-    mapping(address => bool) public proposedOwners;
-
-    constructor(address[] memory _owners, address[] memory _trustedSigners, bytes32[] memory _certificateTrustStore, uint8 _validSignersThreshold, uint8 _validSourcesThreshold, uint64 _validTimePeriod) {
+    constructor(
+        address[] memory _owners, 
+        address[] memory _trustedSigners, 
+        bytes32[] memory _certificateTrustStore, 
+        uint8 _validSignersThreshold, 
+        uint8 _validSourcesThreshold, 
+        bytes memory _script, 
+        uint64 _validTimePeriod
+    ) AcelonOwner(_owners) {
         for(uint8 i = 0; i < _trustedSigners.length; i++) {
             trustedSigners[_trustedSigners[i]] = true;
         }
@@ -29,36 +35,10 @@ contract AcelonOracle is IAcelonOracle {
             certificateTrustStore[_certificateTrustStore[i]] = true;
         }
 
-        for(uint8 i = 0; i < _owners.length; i++) {
-            owners[_owners[i]] = true;
-        }
-
         validSignersThreshold = _validSignersThreshold;
         validSourcesThreshold = _validSourcesThreshold;
+        script = _script;
         validTimePeriod = _validTimePeriod;
-    }
-
-    modifier onlyOwner() {
-        require(owners[msg.sender], "NOT_OWNER");
-        _;
-    }
-
-    modifier onlyProposedOwner() {
-        require(proposedOwners[msg.sender], "NOT_PROPOSED_OWNER");
-        _;
-    }
-
-    function proposeOwner(address newOwner) public onlyOwner {
-        proposedOwners[newOwner] = true;
-    }
-
-    function acceptOwner() public onlyProposedOwner {
-        proposedOwners[msg.sender] = false;
-        owners[msg.sender] = true;
-    }
-
-    function removeOwner(address owner) public onlyOwner {
-        owners[owner] = false;
     }
 
     function updateSignersThreshold(uint8 newThreshold) public onlyOwner {
@@ -73,11 +53,15 @@ contract AcelonOracle is IAcelonOracle {
         validTimePeriod = newTimePeriod;
     }
 
-    function addTrustedSinger(address signer) public onlyOwner {
+    function updateScript(bytes memory _script) public onlyOwner {
+        script = _script;
+    }
+
+    function addTrustedSigner(address signer) public onlyOwner {
         trustedSigners[signer] = true;
     }
 
-    function removeTrustedSinger(address signer) public onlyOwner {
+    function removeTrustedSigner(address signer) public onlyOwner {
         trustedSigners[signer] = false;
     }
 
@@ -115,7 +99,7 @@ contract AcelonOracle is IAcelonOracle {
             // 1. check the signature first
             uint8 validSignerCounter = 0;
             for (uint8 k = 0; k < signature[i].length; k++) {
-                address recoveredSigner = recoverSigner(keccak256(abi.encodePacked(ACURAST_SIGNATURE_PREFIX, ACURAST_SCRIPT_PREFIX, updateData[i])), signature[i][k]);
+                address recoveredSigner = recoverSigner(keccak256(abi.encodePacked(ACURAST_SIGNATURE_PREFIX, script, updateData[i])), signature[i][k]);
                 if(trustedSigners[recoveredSigner]){
                     validSignerCounter++;
                     if(validSignerCounter >= validSignersThreshold){
@@ -145,7 +129,7 @@ contract AcelonOracle is IAcelonOracle {
             require(validSourcesCounter >= validSourcesThreshold,"not enough valid sources");
 
             // 4. set the new price
-            if(priceFeeds[pricePayload.requestHash].timestamp < pricePayload.timestamp){
+            if (priceFeeds[pricePayload.requestHash].timestamp < pricePayload.timestamp) {
                 AcelonStructs.PriceEntry memory priceEntry = AcelonStructs.PriceEntry(pricePayload.timestamp, pricePayload.prices);
                 priceFeeds[pricePayload.requestHash] = priceEntry;
                 emit PriceFeedUpdate(pricePayload.requestHash, priceEntry);
@@ -156,18 +140,22 @@ contract AcelonOracle is IAcelonOracle {
     function priceFeedExists(bytes32 requestHash) public view override returns (bool) {
         return priceFeeds[requestHash].timestamp > 0;
     }
+
+    function getScript() public view override returns (bytes memory _script) {
+        return script;
+    }
     
     function getValidTimePeriod() public view override returns (uint64){
         return validTimePeriod;
     }
 
-    function getPriceNoOlderThan(bytes32 requestHash, uint64 age) public view override returns (AcelonStructs.PriceEntry memory priceEntry){
+    function getPriceNoOlderThan(bytes32 requestHash, uint64 age) public view override returns (AcelonStructs.PriceEntry memory priceEntry) {
         priceEntry = priceFeeds[requestHash];
-        require(diff(block.timestamp, priceEntry.timestamp) <= age);
+        require(diff(block.timestamp * 1000, priceEntry.timestamp) <= age);
         return priceEntry;
     }
 
-    function getPrice(bytes32 requestHash) public view override returns (AcelonStructs.PriceEntry memory priceEntry){
+    function getPrice(bytes32 requestHash) public view override returns (AcelonStructs.PriceEntry memory priceEntry) {
         return getPriceNoOlderThan(requestHash, getValidTimePeriod());
     }
     

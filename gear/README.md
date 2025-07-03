@@ -34,4 +34,4 @@ The core functionality the contract offers is the `update_price_feeds` call, whi
 
 See the test in [gtest.rs](tests/gtest.rs) for an example.
 
-The contract also stores a list of valid signers (Oracle addresses) and certificate hashes, only prices provided by the those Oracles (singers) and certificates will be accepted.
+The contract also stores a list of valid signers (Oracle addresses) and certificate hashes, only prices provided by the those Oracles (signers) and certificates will be accepted.
