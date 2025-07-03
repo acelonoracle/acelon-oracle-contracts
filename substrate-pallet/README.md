@@ -26,4 +26,4 @@ The core functionality the pallet offers is the `update_price_feeds` extrinsic, 
 
 See the test in [tests.rs](src/tests.rs) for an example.
 
-The pallet also stores a list of valid signers (Oracle addresses) and certificate hashes, only prices provided by the those Oracles (singers) and certificates will be accepted.
+The pallet also stores a list of valid signers (Oracle addresses) and certificate hashes, only prices provided by the those Oracles (signers) and certificates will be accepted.
